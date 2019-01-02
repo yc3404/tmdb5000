@@ -1,0 +1,72 @@
+---
+title: "Moive Recommendation"
+output: html_notebook
+---
+
+First step, import the file and clean the data 
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(jsonlite)
+library(fastDummies)
+library(class)
+```
+
+
+```{r}
+movies <- read_csv("./data/tmdb_5000_movies.csv")
+credits <- read_csv("./data/tmdb_5000_credits.csv")
+```
+
+
+```{r}
+movie_with_tag <- movies %>% filter(nchar(genres) > 2) %>% mutate(genres = lapply(genres, fromJSON)) %>% unnest(genres) %>% select(id, title, genres = name)
+
+
+movie_with_keywords <- movies %>% filter(nchar(keywords) > 2) %>% mutate(keywords = lapply(keywords, fromJSON)) %>% unnest(keywords) %>% select(id, title, keywords = name)
+
+movie_full <- movie_with_tag %>% inner_join(movie_with_keywords, by = "id")
+
+movie_full %>% group_by(keywords) %>% count() %>% arrange(desc(n))
+
+movie_full %>% group_by(genres) %>% count() %>% arrange(desc(n))
+
+
+```
+
+
+
+```{r}
+
+movie_with_tag_dummy <- movie_with_tag %>% dummy_cols("genres") 
+
+movie_with_tag_dummy <- movie_with_tag_dummy %>% select(-genres) %>% group_by(id, title) %>% summarize_all(sum) 
+
+
+movie_with_keywords_dummy <- movie_with_keywords %>% dummy_cols("keywords")
+
+movie_with_keywords_dummy <- movie_with_keywords_dummy %>% select(-keywords) 
+
+movie_with_keywords_dummy2 <- movie_with_keywords_dummy
+
+colnames(movie_with_keywords_dummy2) <- enc2native(colnames(movie_with_keywords_dummy2))
+
+movie_with_keywords_dummy2 <- movie_with_keywords_dummy2 %>% group_by(id, title) %>% summarize_all(sum)
+
+
+movie_dummy_all <- movie_with_tag_dummy %>% inner_join(movie_with_keywords_dummy2, by = c("id", "title"))
+
+
+
+```
+
+
+```{r}
+movie_dummy_all_train <- movie_dummy_all %>% select(-id, -title)
+
+
+```
+
+
+
+
