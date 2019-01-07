@@ -29,7 +29,7 @@ credits <- read_csv("./data/tmdb_5000_credits.csv")
 movie_with_tag <- movies %>% filter(nchar(genres) > 2) %>% mutate(genres = lapply(genres, fromJSON)) %>% unnest(genres) %>% select(id, title, genres = name)
 
 # do the same thing to cast members per movie 
-credits_cast <- credits %>% select(-crew) %>% filter(nchar(cast) >2) %>%  mutate(cast=lapply(cast,fromJSON)) %>% unnest(cast) %>% select(movie_id,title,cast=name) %>% mutate(id=movie_id)%>%mutate(movie_id=NULL) %>% group_by(id, title) %>% mutate(cast = paste0(cast, collapse = " ")) %>% distinct()
+credits_cast <- credits %>% select(-crew) %>% filter(nchar(cast) >2) %>%  mutate(cast=lapply(cast,fromJSON)) %>% unnest(cast) %>% select(movie_id,title,cast=name) %>% mutate(id=movie_id)%>%mutate(movie_id=NULL) %>% mutate(casts = str_replace_all(cast, " ", "")) %>% select(id, title, cast = casts) %>% group_by(id, title) %>% mutate(cast = paste0(cast, collapse = " ")) %>% distinct()
 
 
 movie_bag <- movies %>% filter(nchar(genres) > 2) %>% mutate(genres = lapply(genres, fromJSON)) %>% unnest(genres) %>% select(id,title,genres=name,overview) %>% group_by(id,title) %>% mutate(genres = paste0(genres, collapse =" ")) %>% distinct()
@@ -61,7 +61,7 @@ cos_sim = sim2(x = dtm_tfidf, method = "cosine", norm = "l2")
 
 #build the function that takes a movie name as input and returns 5 recommended movies
 rec <- function(title_input,c = cos_sim){
-  recommend_movies <- rep(NA,5)
+  recommend_movies <- c
   #get index that matches the input movie title
   idx <- which(movie_words$title==title_input)
   top_5 <- order(cos_sim[idx,],decreasing=T)[2:6]
