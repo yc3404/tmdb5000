@@ -40,11 +40,16 @@ movie_bag2 <- inner_join(credits_cast,movie_bag,by="id")%>%select(id,title.x,cas
 # then repeat it for keywords per movie 
 movie_with_keywords <- movies %>% filter(nchar(keywords) > 2) %>% mutate(keywords = lapply(keywords, fromJSON)) %>% unnest(keywords) %>% select(id, title, keywords = name)%>% group_by(id,title) %>% mutate(keywords=paste0(keywords, collapse=" ")) %>% distinct()
 
+# repeat it for directors per movie 
+movie_with_directors <- credits %>% select(-cast) %>% filter(nchar(crew) >2) %>% mutate(directors = lapply(crew, fromJSON)) %>% unnest(directors)%>% select(movie_id,title,job,directors=name) %>% filter(job == "Director")%>%mutate(id=movie_id)%>%mutate(movie_id=NULL)%>% mutate(director = str_replace_all(directors, " ", "")) %>% select(id, title, directors = director) %>% group_by(id, title) %>% mutate(directors = paste0(directors, collapse = " ")) %>% distinct()
+
 # intergrate genres, cast and keywords together into a tibble and perform some preprocessing(transform words into lower case, remove punctuation)
 movie_all <- inner_join(movie_with_keywords,movie_bag2, by="id") %>% select(-title.x) %>% mutate(overview=tolower(overview))%>%mutate(overview=removePunctuation(overview)) %>% mutate(keywords=tolower(keywords)) %>% mutate(cast=tolower(cast)) %>% mutate(genres=tolower(genres))
 
+movie_a <- inner_join(movie_all,movie_with_directors, by=c("id","title"))%>% mutate(directors=tolower(directors))
+
 # create a column with name "bag of words" and put genres, actors, keywords and overview into it to construct bag of words for each film
-movie_words <- movie_all %>% group_by(title, id) %>% mutate(bag_of_words = paste0(genres, keywords, cast, overview,collapse=" "))
+movie_words <- movie_a %>% group_by(title, id) %>% mutate(bag_of_words = paste0(genres, keywords, cast, overview,collapse=" "))
 
 movie_full <- movie_with_tag %>% inner_join(movie_with_keywords, by = "id")
 
