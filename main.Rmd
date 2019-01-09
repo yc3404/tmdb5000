@@ -49,13 +49,8 @@ movie_all <- inner_join(movie_with_keywords,movie_bag2, by="id") %>% select(-tit
 movie_a <- inner_join(movie_all,movie_with_directors, by=c("id","title"))%>% mutate(directors=tolower(directors))
 
 # create a column with name "bag of words" and put genres, actors, keywords and overview into it to construct bag of words for each film
-movie_words <- movie_a %>% group_by(title, id) %>% mutate(bag_of_words = paste0(genres, keywords, cast, overview,collapse=" "))
+movie_words <- movie_a %>% group_by(title, id) %>% mutate(bag_of_words = paste0(genres, keywords, cast, overview, directors,collapse=" "))
 
-movie_full <- movie_with_tag %>% inner_join(movie_with_keywords, by = "id")
-
-movie_full %>% group_by(keywords) %>% count() %>% arrange(desc(n))
-
-movie_full %>% group_by(genres) %>% count() %>% arrange(desc(n))
 
 #create document matrix and compute tf-idf cosine similarity 
 it <- itoken(movie_words$bag_of_words,word_tokenizer)
@@ -84,36 +79,6 @@ rec("Tangled")
 
 
 
-```{r}
-
-movie_with_tag_dummy <- movie_with_tag %>% dummy_cols("genres") 
-
-movie_with_tag_dummy <- movie_with_tag_dummy %>% select(-genres) %>% group_by(id, title) %>% summarize_all(sum) 
-
-
-movie_with_keywords_dummy <- movie_with_keywords %>% dummy_cols("keywords")
-
-movie_with_keywords_dummy <- movie_with_keywords_dummy %>% select(-keywords) 
-
-movie_with_keywords_dummy2 <- movie_with_keywords_dummy
-
-colnames(movie_with_keywords_dummy2) <- enc2native(colnames(movie_with_keywords_dummy2))
-
-movie_with_keywords_dummy2 <- movie_with_keywords_dummy2 %>% group_by(id, title) %>% summarize_all(sum)
-
-
-movie_dummy_all <- movie_with_tag_dummy %>% inner_join(movie_with_keywords_dummy2, by = c("id", "title"))
-
-
-
-```
-
-
-```{r}
-movie_dummy_all_train <- movie_dummy_all %>% select(-id, -title)
-
-
-```
 
 
 
