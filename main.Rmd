@@ -143,18 +143,19 @@ q <- data.frame(matrix(unlist(url[[i]]), nrow=20, ncol=2))
 dat <- rbind(dat,q);
 }
 
-
-write.csv(dat,file="movie_image.csv")
+write_csv(dat,path="movie_image2.csv")
  
-movie_img <- read_csv("movie_image.csv")
+movie_img <- read_csv("movie_image2.csv")
+
 library(data.table)
-m <- fread("movie_image.csv",encoding="UTF-8",header=T)
+m <- fread("movie_image2.csv",encoding="UTF-8",header=T)
+m$X1 <- str_replace_all(m$X1,pattern="[[:punct:]]|[^[:ascii:]]", "")
 n <- nrow(movie_img)
 a <- rep(NA,n)
 b <- rep(NA,n)
 for (i in 1:n){
- a[i] <- m[i,3]
- b[i] <- m[i,2]
+ a[i] <- m[i,2]
+ b[i] <- m[i,1]
  download.file(paste0(a[i]),paste("./img/",b[i],".JPEG",sep=""),mode="wb")
 }
 ```
