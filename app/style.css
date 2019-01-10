@@ -1,0 +1,12 @@
+
+body {
+  background-image: url("movie.jpg");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-color : #f6f6f6; 
+}
+
+@font-face {  
+  src: url(ALGER.ttf);
+  font-family: "Algerian Regular";
+}
