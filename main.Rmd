@@ -118,6 +118,7 @@ movie_dummy_all_train <- movie_dummy_all %>% select(-id, -title)
 ```{r warning=F}
 library(rvest)
 library(purrr)
+#use rvest to scrape poster titles and url from themoviedatabase
 url <- lapply(paste0("https://www.themoviedb.org/movie?page=",1:993),
 function(url){
  pr <- url %>% read_html()%>%html_nodes("[class='poster lazyload fade']")
@@ -125,13 +126,31 @@ function(url){
  imgs <- pr %>% html_attr('data-src')
  c(name, imgs)
 })
-
+#find the page numbers that lack poster pictures(it should be 20 images per page)
 list_lost_pic <- NA
 for (i in 1:993){
 list_lost_pic[i] <- length(url[[i]])<40
 }
 
 num <- which(list_lost_pic)
+for (i in num){
+  print(i)
+  print(length(url[[i]]))
+}
+#we can see that most pages lack 1 or 2 images
+#first deal with pages that lack 1 image
+lost_pic1 <- NA
+for (i in num){
+  lost_pic1[i] <- length(url[[i]]) == 38
+}
+num4 <- which(lost_pic1)
+#then deal with pages that lack 2 images
+lost_pic2 <- NA
+for (i in num){
+  lost_pic2[i] <- length(url[[i]]) == 36
+}
+num5 <- which(lost_pic2)
+
 num2 <- seq(1:993)
 num3 <- setdiff(num2,num)
 num3 <- num3[! num3 %in% 1:2]
@@ -143,10 +162,23 @@ q <- data.frame(matrix(unlist(url[[i]]), nrow=20, ncol=2))
 dat <- rbind(dat,q);
 }
 
+#append pages that lack 1 image to dat
+for (i in num4){
+  q1 <- data.frame(matrix(unlist(url[[i]]),nrow=19,ncol=2))
+  dat <- rbind(dat,q1)
+}
+
+#append pages that lack 2 images to dat
+for (i in num5){
+  q2 <- data.frame(matrix(unlist(url[[i]]),nrow=18,ncol=2))
+  dat <- rbind(dat,q2)
+}
+#write the title of movie and the url to download the poster into a csv file
 write_csv(dat,path="movie_image2.csv")
  
 movie_img <- read_csv("movie_image2.csv")
 
+#download all the images into img folder
 library(data.table)
 m <- fread("movie_image2.csv",encoding="UTF-8",header=T)
 m$X1 <- str_replace_all(m$X1,pattern="[[:punct:]]|[^[:ascii:]]", "")

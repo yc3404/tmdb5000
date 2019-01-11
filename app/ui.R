@@ -98,13 +98,34 @@ ui <- fluidPage(
           
    
 fluidRow(column(width=3,offset=5,div(style = "height:60px;"),submitButton(icon("search"), text=tags$b("Find",style="color:white;font-family: Montserrat;")))),
-    # Show a plot of the generated distribution
+   
+fluidRow(style="color:white;
+         font-family:Montserrat;font-size:14px;
+         ",
+         splitLayout(cellWidths=c("20%","20%","20%","20%","20%"),tags$b(textOutput("t1")),
+                     tags$b(textOutput("t2")),tags$b(textOutput("t3")),
+                     tags$b(textOutput("t4")),tags$b(textOutput("t5"))
+                     
+         )),
   fluidRow(
     column(width = 12, div(style = "height:40px;"))),
   
     fluidRow(
-      column(width = 4, offset = 5, tableOutput("mt"))
+     splitLayout(cellWidths=c("20%","20%","20%","20%","20%"),imageOutput("mt1"),imageOutput("mt2"),imageOutput("mt3"),
+                 imageOutput("mt4"),imageOutput("mt5"))
        
-    )
+    ),
+fluidRow(style="color:white;
+         font-family:Montserrat;font-size:14px;
+         ",
+         splitLayout(cellWidths=c("20%","20%","20%","20%","20%"),tags$b(textOutput("t6")),
+                     tags$b(textOutput("t7")),tags$b(textOutput("t8")),
+                     tags$b(textOutput("t9")),tags$b(textOutput("t10"))
+                     
+         )),
+   fluidRow(splitLayout(cellWidths=c("20%","20%","20%","20%","20%"),imageOutput("mt6"),imageOutput("mt7"),imageOutput("mt8"),
+                          imageOutput("mt9"),imageOutput("mt10")))
 )
+
+
 
