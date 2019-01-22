@@ -10,6 +10,7 @@ if (!require("DT")) install.packages("DT");library(DT)
 #load data
 movie_words <- fread("./data/movie_words.csv",encoding="UTF-8",header = T)
 
+
 #create document matrix and compute tf-idf cosine similarity 
 it <- itoken(movie_words$bag_of_words,word_tokenizer)
 v <- create_vocabulary(it)
@@ -18,6 +19,7 @@ dtm <- create_dtm(it,vectorizer)
 model_tf <- TfIdf$new()
 dtm_tfidf = model_tf$fit_transform(dtm)
 cos_sim = sim2(x = dtm_tfidf, method = "cosine", norm = "l2")
+#recommend function that recommends 10 movies
 rec <- function(title_input,c = cos_sim){
   recommend_movies <- rep(NA,10)
   #get index that matches the input movie title
