@@ -51,11 +51,11 @@ movie_a <- inner_join(movie_all,movie_with_directors, by=c("id","title"))%>% mut
 # create a column with name "bag of words" and put genres, actors, keywords and overview into it to construct bag of words for each film
 movie_words <- movie_a %>% group_by(title, id) %>% mutate(bag_of_words = paste(genres, keywords, cast, overview, directors, sep=" ",collapse=" "))
 
-movie_full <- movie_with_tag %>% inner_join(movie_with_keywords, by = "id")
+# delete all punctuations from the movie title (this step is to ensure we match the exact same title as the downloaded images)
+movie_words$title <-  str_replace_all(movie_words$title,pattern="[[:punct:]]|[^[:ascii:]]", "")
 
-movie_full %>% group_by(keywords) %>% count() %>% arrange(desc(n))
-
-movie_full %>% group_by(genres) %>% count() %>% arrange(desc(n))
+#write movie_words into a csv
+write_csv(movie_words,path="./data/movie_words.csv")
 
 #create document matrix and compute tf-idf cosine similarity 
 it <- itoken(movie_words$bag_of_words,word_tokenizer)
@@ -84,110 +84,6 @@ rec("Tangled")
 
 
 
-```{r}
-
-movie_with_tag_dummy <- movie_with_tag %>% dummy_cols("genres") 
-
-movie_with_tag_dummy <- movie_with_tag_dummy %>% select(-genres) %>% group_by(id, title) %>% summarize_all(sum) 
-
-
-movie_with_keywords_dummy <- movie_with_keywords %>% dummy_cols("keywords")
-
-movie_with_keywords_dummy <- movie_with_keywords_dummy %>% select(-keywords) 
-
-movie_with_keywords_dummy2 <- movie_with_keywords_dummy
-
-colnames(movie_with_keywords_dummy2) <- enc2native(colnames(movie_with_keywords_dummy2))
-
-movie_with_keywords_dummy2 <- movie_with_keywords_dummy2 %>% group_by(id, title) %>% summarize_all(sum)
-
-
-movie_dummy_all <- movie_with_tag_dummy %>% inner_join(movie_with_keywords_dummy2, by = c("id", "title"))
 
 
 
-```
-
-
-```{r}
-movie_dummy_all_train <- movie_dummy_all %>% select(-id, -title)
-
-
-```
-
-```{r warning=F}
-library(rvest)
-library(purrr)
-#use rvest to scrape poster titles and url from themoviedatabase
-url <- lapply(paste0("https://www.themoviedb.org/movie?page=",1:993),
-function(url){
- pr <- url %>% read_html()%>%html_nodes("[class='poster lazyload fade']")
- name <- pr %>% html_attr('alt')
- imgs <- pr %>% html_attr('data-src')
- c(name, imgs)
-})
-#find the page numbers that lack poster pictures(it should be 20 images per page)
-list_lost_pic <- NA
-for (i in 1:993){
-list_lost_pic[i] <- length(url[[i]])<40
-}
-
-num <- which(list_lost_pic)
-for (i in num){
-  print(i)
-  print(length(url[[i]]))
-}
-#we can see that most pages lack 1 or 2 images
-#first deal with pages that lack 1 image
-lost_pic1 <- NA
-for (i in num){
-  lost_pic1[i] <- length(url[[i]]) == 38
-}
-num4 <- which(lost_pic1)
-#then deal with pages that lack 2 images
-lost_pic2 <- NA
-for (i in num){
-  lost_pic2[i] <- length(url[[i]]) == 36
-}
-num5 <- which(lost_pic2)
-
-num2 <- seq(1:993)
-num3 <- setdiff(num2,num)
-num3 <- num3[! num3 %in% 1:2]
-d <- data.frame(matrix(unlist(url[[1]]), nrow=20, ncol=2))
-q <- data.frame(matrix(unlist(url[[2]]),nrow=20,ncol=2))
-dat <- rbind(d,q)
-for (i in num3){
-q <- data.frame(matrix(unlist(url[[i]]), nrow=20, ncol=2))
-dat <- rbind(dat,q);
-}
-
-#append pages that lack 1 image to dat
-for (i in num4){
-  q1 <- data.frame(matrix(unlist(url[[i]]),nrow=19,ncol=2))
-  dat <- rbind(dat,q1)
-}
-
-#append pages that lack 2 images to dat
-for (i in num5){
-  q2 <- data.frame(matrix(unlist(url[[i]]),nrow=18,ncol=2))
-  dat <- rbind(dat,q2)
-}
-#write the title of movie and the url to download the poster into a csv file
-write_csv(dat,path="movie_image2.csv")
- 
-movie_img <- read_csv("movie_image2.csv")
-
-#download all the images into img folder
-library(data.table)
-m <- fread("movie_image2.csv",encoding="UTF-8",header=T)
-m$X1 <- str_replace_all(m$X1,pattern="[[:punct:]]|[^[:ascii:]]", "")
-n <- nrow(movie_img)
-a <- rep(NA,n)
-b <- rep(NA,n)
-for (i in 1:n){
- a[i] <- m[i,2]
- b[i] <- m[i,1]
- download.file(paste0(a[i]),paste("./img/",b[i],".JPEG",sep=""),mode="wb")
-}
-```
