@@ -5,6 +5,7 @@ if (!require("tm")) install.packages("tm");library(tm)
 if (!require("text2vec")) install.packages("text2vec");library(text2vec)
 if (!require("shiny")) install.packages("shiny");library(shiny)
 if (!require("DT")) install.packages("DT");library(DT)
+if(!require("data.table"))install.packages("data.table");library(data.table)
 
 
 #load data

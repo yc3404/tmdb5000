@@ -8,6 +8,7 @@ if (!require("text2vec")) install.packages("text2vec");library(text2vec)
 if(!require("shinyWidgets"))install.packages("shinyWidgets");library(shinyWidgets)
 if(!require("shiny"))install.packages("shiny");library(shiny)
 if(!require("DT"))install.packages("DT");library(DT)
+if(!require("data.table"))install.packages("data.table");library(data.table)
 
 #load data
 movie_words <- fread("./data/movie_words.csv",encoding="UTF-8",header = T)
